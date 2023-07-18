@@ -6,7 +6,7 @@
 	  <Version>0.1.0-alpha</Version>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-	  <Title>Mapito</Title>
+	  <Title>PabloDispatch</Title>
 	  <Authors>jbmo</Authors>
 	  <RepositoryUrl>https://github.com/jbmoe/PabloDispatch</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
