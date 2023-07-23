@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
-using PabloDispatch.Api.Requests;
+using PabloDispatch.Api.Commands;
+using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Configuration;
 using PabloDispatch.Domain.Services;
@@ -74,15 +75,15 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetRequestHandler<NullVoidRequest, NullVoidRequestHandler>();
+            component.SetCommandHandler<MockCommand, MockCommandHandler>();
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var requestHandler = serviceProvider.GetService<IRequestHandler<NullVoidRequest>>();
+        var requestHandler = serviceProvider.GetService<ICommandHandler<MockCommand>>();
 
         Assert.NotNull(requestHandler);
-        Assert.IsType<NullVoidRequestHandler>(requestHandler);
+        Assert.IsType<MockCommandHandler>(requestHandler);
     }
 
     [Fact]
@@ -90,15 +91,15 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetRequestHandler<NullReturnRequest, NullReturnRequestReturnModel, NullReturnRequestHandler>();
+            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>();
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var requestHandler = serviceProvider.GetService<IRequestHandler<NullReturnRequest, NullReturnRequestReturnModel>>();
+        var requestHandler = serviceProvider.GetService<IQueryHandler<MockQuery, MockModel>>();
 
         Assert.NotNull(requestHandler);
-        Assert.IsType<NullReturnRequestHandler>(requestHandler);
+        Assert.IsType<MockQueryHandler>(requestHandler);
     }
 
     [Fact]
@@ -106,23 +107,23 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetRequestHandler<NullVoidRequest, NullVoidRequestHandler>(pipeline =>
+            component.SetCommandHandler<MockCommand, MockCommandHandler>(pipeline =>
             {
                 pipeline
-                    .AddPreProcessor<NullVoidRequestFirstPipelineHandler>()
-                    .AddPostProcessor<NullVoidRequestSecondPipelineHandler>();
+                    .AddPreProcessor<MockACommandPipelineHandler>()
+                    .AddPostProcessor<MockBCommandPipelineHandler>();
             });
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var firstPipelineHandler = serviceProvider.GetService(typeof(NullVoidRequestFirstPipelineHandler)) as IRequestPipelineHandler<NullVoidRequest>;
-        var secondPipelineHandler = serviceProvider.GetService(typeof(NullVoidRequestSecondPipelineHandler)) as IRequestPipelineHandler<NullVoidRequest>;
+        var firstPipelineHandler = serviceProvider.GetService(typeof(MockACommandPipelineHandler)) as ICommandPipelineHandler<MockCommand>;
+        var secondPipelineHandler = serviceProvider.GetService(typeof(MockBCommandPipelineHandler)) as ICommandPipelineHandler<MockCommand>;
 
         Assert.NotNull(firstPipelineHandler);
         Assert.NotNull(secondPipelineHandler);
-        Assert.IsType<NullVoidRequestFirstPipelineHandler>(firstPipelineHandler);
-        Assert.IsType<NullVoidRequestSecondPipelineHandler>(secondPipelineHandler);
+        Assert.IsType<MockACommandPipelineHandler>(firstPipelineHandler);
+        Assert.IsType<MockBCommandPipelineHandler>(secondPipelineHandler);
     }
 
     [Fact]
@@ -130,22 +131,22 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetRequestHandler<NullReturnRequest, NullReturnRequestReturnModel, NullReturnRequestHandler>(pipeline =>
+            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipeline =>
             {
                 pipeline
-                    .AddPreProcessor<NullReturnRequestFirstPipelineHandler>()
-                    .AddPostProcessor<NullReturnRequestSecondPipelineHandler>();
+                    .AddPreProcessor<MockAQueryPipelineHandler>()
+                    .AddPostProcessor<MockBQueryPipelineHandler>();
             });
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var firstPipelineHandler = serviceProvider.GetService(typeof(NullReturnRequestFirstPipelineHandler)) as IRequestPipelineHandler<NullReturnRequest, NullReturnRequestReturnModel>;
-        var secondPipelineHandler = serviceProvider.GetService(typeof(NullReturnRequestSecondPipelineHandler)) as IRequestPipelineHandler<NullReturnRequest, NullReturnRequestReturnModel>;
+        var firstPipelineHandler = serviceProvider.GetService(typeof(MockAQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery, MockModel>;
+        var secondPipelineHandler = serviceProvider.GetService(typeof(MockBQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery, MockModel>;
 
         Assert.NotNull(firstPipelineHandler);
         Assert.NotNull(secondPipelineHandler);
-        Assert.IsType<NullReturnRequestFirstPipelineHandler>(firstPipelineHandler);
-        Assert.IsType<NullReturnRequestSecondPipelineHandler>(secondPipelineHandler);
+        Assert.IsType<MockAQueryPipelineHandler>(firstPipelineHandler);
+        Assert.IsType<MockBQueryPipelineHandler>(secondPipelineHandler);
     }
 }

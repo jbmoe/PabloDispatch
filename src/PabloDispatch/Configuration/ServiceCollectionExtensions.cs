@@ -11,11 +11,7 @@ public static class ServiceCollectionExtensions
 
         componentConfig?.Invoke(component);
 
-        services
-            .Add(component.Services.Values)
-            .Add(component.RequestHandlers.Values)
-            .Add(component.RequestPipelineHandlers)
-            .Add(component.RequestPipelineProviders.Values);
+        services.Add(component.GetServices());
 
         return services;
     }

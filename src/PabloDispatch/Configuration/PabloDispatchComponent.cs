@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PabloDispatch.Api.Providers;
-using PabloDispatch.Api.Requests;
+using PabloDispatch.Api.Commands;
+using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Domain.Providers;
 using PabloDispatch.Domain.Services;
-#pragma warning disable SA1401
 
 namespace PabloDispatch.Configuration;
 
@@ -12,96 +11,84 @@ public class PabloDispatchComponent : IPabloDispatchComponent
 {
     #region Services
 
-    internal enum ServicesEnum
-    {
-        PabloDispatcher,
-    }
+    internal ServiceDescriptor PabloDispatcher { get; private set; } = ServiceDescriptor.Transient<IPabloDispatcher, PabloDispatcher>();
 
-    internal readonly Dictionary<ServicesEnum, ServiceDescriptor> Services = new()
-    {
-        [ServicesEnum.PabloDispatcher] = ServiceDescriptor.Transient<IPabloDispatcher, PabloDispatcher>(),
-    };
-
-    public IPabloDispatchComponent SetPabloDispatcher<T>()
+    public IPabloDispatchComponent SetPabloDispatcher<T>(ServiceLifetime lifetime)
         where T : class, IPabloDispatcher
     {
-        Services[ServicesEnum.PabloDispatcher] = ServiceDescriptor.Transient<IPabloDispatcher, T>();
+        PabloDispatcher = ServiceDescriptor.Describe(typeof(IPabloDispatcher), typeof(T), lifetime);
+        return this;
+    }
+
+    public IReadOnlyList<ServiceDescriptor> GetServices()
+    {
+        return new List<ServiceDescriptor>
+            {
+                PabloDispatcher,
+            }
+            .Union(_queryHandlers)
+            .Union(_queryPipelineHandlers)
+            .Union(_queryPipelineProviders)
+            .Union(_commandHandlers)
+            .Union(_commandPipelineHandlers)
+            .Union(_commandPipelineProviders)
+            .ToList();
+    }
+
+    #endregion
+
+    #region Commands
+
+    private readonly List<ServiceDescriptor> _commandHandlers = new();
+
+    private readonly List<ServiceDescriptor> _commandPipelineHandlers = new();
+
+    private readonly List<ServiceDescriptor> _commandPipelineProviders = new();
+
+    public IPabloDispatchComponent SetCommandHandler<TCommand, TCommandHandler>(Action<ICommandPipeline<TCommand>>? pipelineConfig = null)
+        where TCommand : ICommand
+        where TCommandHandler : class, ICommandHandler<TCommand>
+    {
+        var pipeline = new CommandPipeline<TCommand>();
+        pipelineConfig?.Invoke(pipeline);
+
+        var pipelineProvider = new CommandPipelineProvider<TCommand>(
+            pipeline.GetPreProcessors().Select(x => x.ImplementationType!).ToList(),
+            pipeline.GetPostProcessors().Select(x => x.ImplementationType!).ToList());
+
+        _commandHandlers.Add(ServiceDescriptor.Transient<ICommandHandler<TCommand>, TCommandHandler>());
+        _commandPipelineHandlers.AddRange(pipeline.GetPreProcessors());
+        _commandPipelineHandlers.AddRange(pipeline.GetPostProcessors());
+        _commandPipelineProviders.Add(ServiceDescriptor.Transient<ICommandPipelineProvider<TCommand>>(_ => pipelineProvider));
+
         return this;
     }
 
     #endregion
 
-    #region Handlers
+    #region Queries
 
-    /// <summary>
-    /// Dictionary of added request handlers, with request request and result type tuple as key.
-    /// </summary>
-    internal readonly Dictionary<Type, ServiceDescriptor> RequestHandlers = new();
+    private readonly List<ServiceDescriptor> _queryHandlers = new();
 
-    /// <summary>
-    /// List og added request pipeline handlers.
-    /// </summary>
-    internal readonly List<ServiceDescriptor> RequestPipelineHandlers = new();
+    private readonly List<ServiceDescriptor> _queryPipelineHandlers = new();
 
-    /// <summary>
-    /// Dictionary of request pipeline providers, with request type as key.
-    /// </summary>
-    internal readonly Dictionary<Type, ServiceDescriptor> RequestPipelineProviders = new();
+    private readonly List<ServiceDescriptor> _queryPipelineProviders = new();
 
-    public IPabloDispatchComponent SetRequestHandler<TRequest, TResult, TRequestHandler>(Action<IRequestPipeline<TRequest, TResult>>? pipelineConfig = null)
-        where TRequest : IRequest<TResult>
-        where TRequestHandler : class, IRequestHandler<TRequest, TResult>
+    public IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
+        where TQuery : IQuery<TResult>
+        where TQueryHandler : class, IQueryHandler<TQuery, TResult>
     {
-        RequestHandlers[typeof(Tuple<TRequest, TResult>)] = ServiceDescriptor.Transient<IRequestHandler<TRequest, TResult>, TRequestHandler>();
+        var pipeline = new QueryPipeline<TQuery, TResult>();
+        pipelineConfig?.Invoke(pipeline);
 
-        // Set pipeline if configurator is not null
-        if (pipelineConfig != null)
-        {
-            // Configure pipeline
-            var pipeline = new ReturnRequestPipeline<TRequest, TResult>();
-            pipelineConfig.Invoke(pipeline);
-            var pipelineProvider = new ReturnRequestPipelineProvider<TRequest, TResult>(
-                pipeline.GetPreProcessors(),
-                pipeline.GetPostProcessors());
+        var pipelineProvider = new QueryPipelineProvider<TQuery, TResult>(
+            pipeline.GetPreProcessors().Select(x => x.ImplementationType!).ToList(),
+            pipeline.GetPostProcessors().Select(x => x.ImplementationType!).ToList());
 
-            // Register pipeline handlers
-            RequestPipelineHandlers.AddRange(pipeline.GetPreProcessors().Select(x => ServiceDescriptor.Transient(x, x)));
-            RequestPipelineHandlers.AddRange(pipeline.GetPostProcessors().Select(x => ServiceDescriptor.Transient(x, x)));
-
-            // Register pipeline provider
-            RequestPipelineProviders[typeof(TRequest)] = ServiceDescriptor.Singleton<IRequestPipelineProvider<TRequest, TResult>>(pipelineProvider);
-
-            return this;
-        }
-
-        return this;
-    }
-
-    public IPabloDispatchComponent SetRequestHandler<TRequest, TRequestHandler>(Action<IRequestPipeline<TRequest>>? pipelineConfig = null)
-        where TRequest : IRequest
-        where TRequestHandler : class, IRequestHandler<TRequest>
-    {
-        RequestHandlers[typeof(Tuple<TRequest>)] = ServiceDescriptor.Transient<IRequestHandler<TRequest>, TRequestHandler>();
-
-        // Set pipeline if configurator is not null
-        if (pipelineConfig != null)
-        {
-            // Configure pipeline
-            var pipeline = new VoidRequestPipeline<TRequest>();
-            pipelineConfig.Invoke(pipeline);
-            var pipelineProvider = new VoidRequestPipelineProvider<TRequest>(
-                pipeline.GetPreProcessors(),
-                pipeline.GetPostProcessors());
-
-            // Register pipeline handlers
-            RequestPipelineHandlers.AddRange(pipeline.GetPreProcessors().Select(x => ServiceDescriptor.Transient(x, x)));
-            RequestPipelineHandlers.AddRange(pipeline.GetPostProcessors().Select(x => ServiceDescriptor.Transient(x, x)));
-
-            // Register pipeline provider
-            RequestPipelineProviders[typeof(TRequest)] = ServiceDescriptor.Singleton<IRequestPipelineProvider<TRequest>>(pipelineProvider);
-
-            return this;
-        }
+        _queryHandlers.Add(ServiceDescriptor.Transient<IQueryHandler<TQuery, TResult>, TQueryHandler>());
+        _queryPipelineHandlers.AddRange(pipeline.GetPreProcessors());
+        _queryPipelineHandlers.AddRange(pipeline.GetPostProcessors());
+        _queryPipelineProviders.Add(ServiceDescriptor.Transient<IQueryPipelineProvider<TQuery, TResult>>(_ => pipelineProvider));
 
         return this;
     }

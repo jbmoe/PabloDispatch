@@ -1,6 +1,7 @@
-﻿using PabloDispatch.Api.Exceptions;
-using PabloDispatch.Api.Providers;
-using PabloDispatch.Api.Requests;
+﻿using Microsoft.Extensions.DependencyInjection;
+using PabloDispatch.Api.Commands;
+using PabloDispatch.Api.Exceptions;
+using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
 
 namespace PabloDispatch.Domain.Services;
@@ -14,96 +15,81 @@ public class PabloDispatcher : IPabloDispatcher
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<TResult> DispatchAsync<TRequest, TResult>(TRequest request, CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResult>
+    public async Task<TResult> DispatchAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
+        where TQuery : IQuery<TResult>
     {
-        // Resolve request handler
-        var handler = _serviceProvider.GetService(typeof(IRequestHandler<TRequest, TResult>)) as IRequestHandler<TRequest, TResult>;
-        if (handler == null)
+        var queryHandler = _serviceProvider.GetService<IQueryHandler<TQuery, TResult>>();
+        if (queryHandler == null)
         {
-            throw new RequestHandlerNotFoundException(typeof(TRequest), typeof(TResult));
+            throw QueryHandlerNotFoundException.FromTypes<TQuery, TResult>();
         }
 
-        // Resolve pipeline provider
-        var pipelineProvider = _serviceProvider.GetService(typeof(IRequestPipelineProvider<TRequest, TResult>)) as IRequestPipelineProvider<TRequest, TResult>;
-
-        // Handle pre-processing
-        if (pipelineProvider != null)
+        var pipelineProvider = _serviceProvider.GetService<IQueryPipelineProvider<TQuery, TResult>>();
+        if (pipelineProvider == null)
         {
-            foreach (var pipelineHandlerType in pipelineProvider.PreProcessors)
-            {
-                if (_serviceProvider.GetService(pipelineHandlerType) is not IRequestPipelineHandler<TRequest, TResult> pipelineHandler)
-                {
-                    throw new RequestPipelineHandlerNotFoundException(typeof(TRequest), typeof(TResult));
-                }
-
-                await pipelineHandler.HandleAsync(request, cancellationToken);
-            }
+            throw QueryPipelineProviderNotFoundException.FromTypes<TQuery, TResult>();
         }
 
-        var result = await handler.HandleAsync(request, cancellationToken);
-
-        // Handle post-processing
-        if (pipelineProvider != null)
+        foreach (var preProcessorType in pipelineProvider.PreProcessors)
         {
-            foreach (var pipelineHandlerType in pipelineProvider.PostProcessors)
+            if (_serviceProvider.GetService(preProcessorType) is not IQueryPipelineHandler<TQuery, TResult> preProcessor)
             {
-                var pipelineHandler = _serviceProvider.GetService(pipelineHandlerType) as IRequestPipelineHandler<TRequest, TResult>;
-                if (pipelineHandler == null)
-                {
-                    throw new RequestPipelineHandlerNotFoundException(typeof(TRequest), typeof(TResult));
-                }
-
-                await pipelineHandler.HandleAsync(request, cancellationToken);
+                throw QueryPipelineHandlerNotFoundException.FromTypes<TQuery, TResult>();
             }
+
+            await preProcessor.HandleAsync(query, cancellationToken);
+        }
+
+        var result = await queryHandler.HandleAsync(query, cancellationToken);
+
+        foreach (var postProcessorType in pipelineProvider.PostProcessors)
+        {
+            if (_serviceProvider.GetService(postProcessorType) is not IQueryPipelineHandler<TQuery, TResult> postProcessor)
+            {
+                throw QueryPipelineHandlerNotFoundException.FromTypes<TQuery, TResult>();
+            }
+
+            await postProcessor.HandleAsync(query, cancellationToken);
         }
 
         return result;
     }
 
-    public async Task DispatchAsync<TRequest>(TRequest request, CancellationToken cancellationToken = default)
-        where TRequest : IRequest
+    public async Task DispatchAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
+        where TCommand : ICommand
     {
-        // Resolve request handler
-        var handler = _serviceProvider.GetService(typeof(IRequestHandler<TRequest>)) as IRequestHandler<TRequest>;
-        if (handler == null)
+        var commandHandler = _serviceProvider.GetService<ICommandHandler<TCommand>>();
+        if (commandHandler == null)
         {
-            throw new RequestHandlerNotFoundException(typeof(TRequest));
+            throw CommandHandlerNotFoundException.FromType<TCommand>();
         }
 
-        // Resolve pipeline provider
-        var pipelineProvider = _serviceProvider.GetService(typeof(IRequestPipelineProvider<TRequest>)) as IRequestPipelineProvider<TRequest>;
-
-        // Handle pre-processing
-        if (pipelineProvider != null)
+        var pipelineProvider = _serviceProvider.GetService<ICommandPipelineProvider<TCommand>>();
+        if (pipelineProvider == null)
         {
-            foreach (var pipelineHandlerType in pipelineProvider.PreProcessors)
-            {
-                var pipelineHandler = _serviceProvider.GetService(pipelineHandlerType) as IRequestPipelineHandler<TRequest>;
-                if (pipelineHandler == null)
-                {
-                    throw new RequestPipelineHandlerNotFoundException(typeof(TRequest));
-                }
-
-                await pipelineHandler.HandleAsync(request, cancellationToken);
-            }
+            throw CommandPipelineProviderNotFoundException.FromType<TCommand>();
         }
 
-        await handler.HandleAsync(request, cancellationToken);
-
-        // Handle post-processing
-        if (pipelineProvider != null)
+        foreach (var preProcessorType in pipelineProvider.PreProcessors)
         {
-            foreach (var pipelineHandlerType in pipelineProvider.PostProcessors)
+            if (_serviceProvider.GetService(preProcessorType) is not ICommandPipelineHandler<TCommand> preProcessor)
             {
-                var pipelineHandler = _serviceProvider.GetService(pipelineHandlerType) as IRequestPipelineHandler<TRequest>;
-                if (pipelineHandler == null)
-                {
-                    throw new RequestPipelineHandlerNotFoundException(typeof(TRequest));
-                }
-
-                await pipelineHandler.HandleAsync(request, cancellationToken);
+                throw CommandPipelineHandlerNotFoundException.FromType<TCommand>();
             }
+
+            await preProcessor.HandleAsync(command, cancellationToken);
+        }
+
+        await commandHandler.HandleAsync(command, cancellationToken);
+
+        foreach (var postProcessorType in pipelineProvider.PostProcessors)
+        {
+            if (_serviceProvider.GetService(postProcessorType) is not ICommandPipelineHandler<TCommand> postProcessor)
+            {
+                throw CommandPipelineHandlerNotFoundException.FromType<TCommand>();
+            }
+
+            await postProcessor.HandleAsync(command, cancellationToken);
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿namespace PabloDispatch.Tests.Mock.Models;
 
-public class NullReturnRequestReturnModel
+public class MockModel
 {
 }

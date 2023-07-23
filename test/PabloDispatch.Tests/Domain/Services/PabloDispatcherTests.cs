@@ -31,9 +31,9 @@ public class PabloDispatcherTests
     {
         var fixture = new PabloDispatcherTestFixture();
 
-        var request = new NullVoidRequest();
+        var request = new MockCommand();
 
-        await Assert.ThrowsAsync<RequestHandlerNotFoundException>(() => fixture.PabloDispatcher.DispatchAsync(request));
+        await Assert.ThrowsAsync<CommandHandlerNotFoundException>(() => fixture.PabloDispatcher.DispatchAsync(request));
     }
 
     [Fact]
@@ -41,10 +41,10 @@ public class PabloDispatcherTests
     {
         var fixture = new PabloDispatcherTestFixture();
 
-        var request = new NullReturnRequest();
+        var request = new MockQuery();
 
-        await Assert.ThrowsAsync<RequestHandlerNotFoundException>(
-            () => fixture.PabloDispatcher.DispatchAsync<NullReturnRequest, NullReturnRequestReturnModel>(request));
+        await Assert.ThrowsAsync<CommandHandlerNotFoundException>(
+            () => fixture.PabloDispatcher.DispatchAsync<MockQuery, MockModel>(request));
     }
 
     [Fact]
