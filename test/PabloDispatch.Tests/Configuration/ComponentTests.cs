@@ -48,10 +48,10 @@ public class ComponentTests
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var pabloDispatcher = serviceProvider.GetService<IPabloDispatcher>();
+        var pabloDispatcher = serviceProvider.GetService<IDispatcher>();
 
         Assert.NotNull(pabloDispatcher);
-        Assert.IsType<PabloDispatcher>(pabloDispatcher);
+        Assert.IsType<Dispatcher>(pabloDispatcher);
     }
 
     [Fact]
@@ -59,15 +59,15 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetPabloDispatcher<NullPabloDispatcher>();
+            component.SetPabloDispatcher<NullDispatcher>();
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var pabloDispatcher = serviceProvider.GetService<IPabloDispatcher>();
+        var pabloDispatcher = serviceProvider.GetService<IDispatcher>();
 
         Assert.NotNull(pabloDispatcher);
-        Assert.IsType<NullPabloDispatcher>(pabloDispatcher);
+        Assert.IsType<NullDispatcher>(pabloDispatcher);
     }
 
     [Fact]
@@ -141,8 +141,8 @@ public class ComponentTests
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var firstPipelineHandler = serviceProvider.GetService(typeof(MockAQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery, MockModel>;
-        var secondPipelineHandler = serviceProvider.GetService(typeof(MockBQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery, MockModel>;
+        var firstPipelineHandler = serviceProvider.GetService(typeof(MockAQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery>;
+        var secondPipelineHandler = serviceProvider.GetService(typeof(MockBQueryPipelineHandler)) as IQueryPipelineHandler<MockQuery>;
 
         Assert.NotNull(firstPipelineHandler);
         Assert.NotNull(secondPipelineHandler);

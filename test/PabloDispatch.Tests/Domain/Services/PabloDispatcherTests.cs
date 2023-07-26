@@ -15,7 +15,7 @@ public class PabloDispatcherTests
 {
     public class PabloDispatcherTestFixture : Fixture
     {
-        public IPabloDispatcher PabloDispatcher { get; set; }
+        public IDispatcher Dispatcher { get; set; }
 
         public PabloDispatcherTestFixture(Action<IPabloDispatchComponent>? componentConfig = null)
         {
@@ -23,7 +23,7 @@ public class PabloDispatcherTests
             var services = new ServiceCollection();
             services.AddPabloDispatch(componentConfig);
             var serviceProvider = services.BuildServiceProvider();
-            PabloDispatcher = serviceProvider.GetRequiredService<IPabloDispatcher>();
+            Dispatcher = serviceProvider.GetRequiredService<IDispatcher>();
         }
     }
 
@@ -35,7 +35,7 @@ public class PabloDispatcherTests
         var request = new MockCommand();
 
         await Assert.ThrowsAsync<CommandHandlerNotFoundException>(
-            () => fixture.PabloDispatcher.DispatchAsync(request));
+            () => fixture.Dispatcher.DispatchAsync(request));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class PabloDispatcherTests
         var request = new MockQuery();
 
         await Assert.ThrowsAsync<QueryHandlerNotFoundException>(
-            () => fixture.PabloDispatcher.DispatchAsync<MockQuery, MockModel>(request));
+            () => fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(request));
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class PabloDispatcherTests
 
         var command = new MockCommand(_ => isInvoked = true);
 
-        await fixture.PabloDispatcher.DispatchAsync(command);
+        await fixture.Dispatcher.DispatchAsync(command);
 
         Assert.True(isInvoked);
     }
@@ -78,7 +78,7 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => isInvoked = true);
 
-        var result = await fixture.PabloDispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        var result = await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
 
         Assert.NotNull(result);
         Assert.IsType<MockModel>(result);

@@ -4,10 +4,10 @@ using PabloDispatch.Api.Services;
 
 namespace PabloDispatch.Tests.Mock.Services;
 
-public class NullPabloDispatcher : IPabloDispatcher
+public class NullDispatcher : IDispatcher
 {
     public Task<TResult> DispatchAsync<TRequest, TResult>(TRequest query, CancellationToken cancellationToken = default)
-        where TRequest : IQuery<TResult>
+        where TRequest : IQuery
     {
         throw new NotImplementedException();
     }
