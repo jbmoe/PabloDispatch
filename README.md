@@ -115,7 +115,7 @@ public class SomeClass
 }
 ```
 
-Remeber to set the query and the query handler as specified [here](#registration)
+Remember to set the query and the query handler as specified [here](#registration)
 
 ## Note on Alpha Version
 
