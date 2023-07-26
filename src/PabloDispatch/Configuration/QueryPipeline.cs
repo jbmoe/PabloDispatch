@@ -4,7 +4,7 @@ using PabloDispatch.Api.Queries;
 namespace PabloDispatch.Configuration;
 
 internal class QueryPipeline<TRequest, TResult> : IQueryPipeline<TRequest, TResult>
-    where TRequest : IQuery<TResult>
+    where TRequest : IQuery
 {
     private readonly List<ServiceDescriptor> _preProcessors = new();
     private readonly List<ServiceDescriptor> _postProcessors = new();
@@ -20,7 +20,7 @@ internal class QueryPipeline<TRequest, TResult> : IQueryPipeline<TRequest, TResu
     }
 
     public IQueryPipeline<TRequest, TResult> AddPreProcessor<TQueryPipelineHandler>(ServiceLifetime lifetime)
-        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
+        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest>
     {
         var serviceDescription = ServiceDescriptor.Describe(typeof(TQueryPipelineHandler), typeof(TQueryPipelineHandler), lifetime);
         _preProcessors.Add(serviceDescription);
@@ -28,7 +28,7 @@ internal class QueryPipeline<TRequest, TResult> : IQueryPipeline<TRequest, TResu
     }
 
     public IQueryPipeline<TRequest, TResult> AddPostProcessor<TQueryPipelineHandler>(ServiceLifetime lifetime)
-        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
+        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest>
     {
         var serviceDescription = ServiceDescriptor.Describe(typeof(TQueryPipelineHandler), typeof(TQueryPipelineHandler), lifetime);
         _postProcessors.Add(serviceDescription);

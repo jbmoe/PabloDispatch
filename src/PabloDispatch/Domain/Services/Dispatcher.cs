@@ -1,22 +1,23 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PabloDispatch.Api.Commands;
 using PabloDispatch.Api.Exceptions;
+using PabloDispatch.Api.Providers;
 using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
 
 namespace PabloDispatch.Domain.Services;
 
-public class PabloDispatcher : IPabloDispatcher
+public class Dispatcher : IDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public PabloDispatcher(IServiceProvider serviceProvider)
+    public Dispatcher(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
     public async Task<TResult> DispatchAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
-        where TQuery : IQuery<TResult>
+        where TQuery : IQuery
     {
         var queryHandler = _serviceProvider.GetService<IQueryHandler<TQuery, TResult>>();
         if (queryHandler == null)
@@ -32,7 +33,7 @@ public class PabloDispatcher : IPabloDispatcher
 
         foreach (var preProcessorType in pipelineProvider.PreProcessors)
         {
-            if (_serviceProvider.GetService(preProcessorType) is not IQueryPipelineHandler<TQuery, TResult> preProcessor)
+            if (_serviceProvider.GetService(preProcessorType) is not IQueryPipelineHandler<TQuery> preProcessor)
             {
                 throw QueryPipelineHandlerNotFoundException.FromTypes<TQuery, TResult>();
             }
@@ -44,7 +45,7 @@ public class PabloDispatcher : IPabloDispatcher
 
         foreach (var postProcessorType in pipelineProvider.PostProcessors)
         {
-            if (_serviceProvider.GetService(postProcessorType) is not IQueryPipelineHandler<TQuery, TResult> postProcessor)
+            if (_serviceProvider.GetService(postProcessorType) is not IQueryPipelineHandler<TQuery> postProcessor)
             {
                 throw QueryPipelineHandlerNotFoundException.FromTypes<TQuery, TResult>();
             }

@@ -1,5 +1,8 @@
 ﻿namespace PabloDispatch.Api.Queries;
 
-public interface IQuery<out TResult>
+/// <summary>
+/// A query for dispatching and handling.
+/// </summary>
+public interface IQuery
 {
 }

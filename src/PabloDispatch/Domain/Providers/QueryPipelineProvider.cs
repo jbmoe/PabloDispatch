@@ -1,9 +1,10 @@
-﻿using PabloDispatch.Api.Queries;
+﻿using PabloDispatch.Api.Providers;
+using PabloDispatch.Api.Queries;
 
 namespace PabloDispatch.Domain.Providers;
 
 public class QueryPipelineProvider<TQuery, TResult> : IQueryPipelineProvider<TQuery, TResult>
-    where TQuery : IQuery<TResult>
+    where TQuery : IQuery
 {
     public QueryPipelineProvider(IReadOnlyList<Type> preProcessors, IReadOnlyList<Type> postProcessors)
     {

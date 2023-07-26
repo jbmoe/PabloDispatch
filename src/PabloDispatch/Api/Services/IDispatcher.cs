@@ -4,9 +4,9 @@ using PabloDispatch.Api.Queries;
 namespace PabloDispatch.Api.Services;
 
 /// <summary>
-/// A request dispatcher for dispatching request to the appropriate handler.
+/// A dispatcher for dispatching commands and queries to the appropriate handler.
 /// </summary>
-public interface IPabloDispatcher
+public interface IDispatcher
 {
     /// <summary>
     /// Dispatches a query of type <typeparamref name="TQuery"/> asynchronously with an expected result of type <typeparamref name="TResult"/>.
@@ -17,7 +17,7 @@ public interface IPabloDispatcher
     /// <param name="cancellationToken">A cancellation token for cancelling async operations.</param>
     /// <returns>Awaitable task for query handling completion with the result.</returns>
     Task<TResult> DispatchAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
-        where TQuery : IQuery<TResult>;
+        where TQuery : IQuery;
 
     /// <summary>
     /// Dispatches a command of type <typeparamref name="TCommand"/> asynchronously.

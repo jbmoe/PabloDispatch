@@ -4,7 +4,7 @@ using PabloDispatch.Api.Commands;
 namespace PabloDispatch.Configuration;
 
 /// <summary>
-/// An interface for a command pipeline for pre- and post-processing commands of type <typeparamref name="TCommand"/>.
+/// A command pipeline for adding pre- and post-processing command pipeline handlers of type <see cref="ICommandPipelineHandler{TCommand}"/>.
 /// </summary>
 /// <typeparam name="TCommand">The command type to pre- or post-process.</typeparam>
 public interface ICommandPipeline<out TCommand>
@@ -23,7 +23,7 @@ public interface ICommandPipeline<out TCommand>
     internal IReadOnlyList<ServiceDescriptor> GetPostProcessors();
 
     /// <summary>
-    /// Adds the command pipeline handler of type <typeparamref name="TCommandPipelineHandler"/> as a pre-processors for the command.
+    /// Adds the command pipeline handler of type <typeparamref name="TCommandPipelineHandler"/> as a pre-processors for the <typeparamref name="TCommand"/>.
     /// </summary>
     /// <param name="lifetime">The <see cref="ServiceLifetime"/> of the pre-processor, <see cref="ServiceLifetime.Transient"/> by default.</param>
     /// <typeparam name="TCommandPipelineHandler">The pipeline handler.</typeparam>
@@ -32,7 +32,7 @@ public interface ICommandPipeline<out TCommand>
         where TCommandPipelineHandler : ICommandPipelineHandler<TCommand>;
 
     /// <summary>
-    /// Adds the command pipeline handler of type <typeparamref name="TCommandPipelineHandler"/> as a post-processors for the command.
+    /// Adds the command pipeline handler of type <typeparamref name="TCommandPipelineHandler"/> as a post-processors for the <typeparamref name="TCommand"/>.
     /// </summary>
     /// <param name="lifetime">The <see cref="ServiceLifetime"/> of the pre-processor, <see cref="ServiceLifetime.Transient"/> by default.</param>
     /// <typeparam name="TCommandPipelineHandler">The pipeline handler.</typeparam>

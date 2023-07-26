@@ -1,4 +1,5 @@
 ﻿using PabloDispatch.Api.Commands;
+using PabloDispatch.Api.Providers;
 
 namespace PabloDispatch.Domain.Providers;
 

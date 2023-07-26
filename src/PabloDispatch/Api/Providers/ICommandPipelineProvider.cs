@@ -1,4 +1,6 @@
-﻿namespace PabloDispatch.Api.Commands;
+﻿using PabloDispatch.Api.Commands;
+
+namespace PabloDispatch.Api.Providers;
 
 /// <summary>
 /// Provides the pre- and post-processors for the request of type <typeparamref name="TCommand"/>.

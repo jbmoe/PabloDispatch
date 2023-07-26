@@ -16,7 +16,7 @@ public interface IPabloDispatchComponent
     /// <typeparam name="T">The type of the implementation.</typeparam>
     /// <returns>Returns component for chaining.</returns>
     IPabloDispatchComponent SetPabloDispatcher<T>(ServiceLifetime lifetime = ServiceLifetime.Transient)
-        where T : class, IPabloDispatcher;
+        where T : class, IDispatcher;
 
     #endregion
 
@@ -46,7 +46,7 @@ public interface IPabloDispatchComponent
     /// <param name="pipelineConfig">Configurator action for configuring the query pipeline.</param>
     /// <returns>Returns component for chaining.</returns>
     IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
-        where TQuery : IQuery<TResult>
+        where TQuery : IQuery
         where TQueryHandler : class, IQueryHandler<TQuery, TResult>;
 
     #endregion

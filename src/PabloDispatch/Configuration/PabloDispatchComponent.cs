@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PabloDispatch.Api.Commands;
+using PabloDispatch.Api.Providers;
 using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Domain.Providers;
@@ -11,12 +12,12 @@ public class PabloDispatchComponent : IPabloDispatchComponent
 {
     #region Services
 
-    internal ServiceDescriptor PabloDispatcher { get; private set; } = ServiceDescriptor.Transient<IPabloDispatcher, PabloDispatcher>();
+    internal ServiceDescriptor PabloDispatcher { get; private set; } = ServiceDescriptor.Transient<IDispatcher, Dispatcher>();
 
     public IPabloDispatchComponent SetPabloDispatcher<T>(ServiceLifetime lifetime)
-        where T : class, IPabloDispatcher
+        where T : class, IDispatcher
     {
-        PabloDispatcher = ServiceDescriptor.Describe(typeof(IPabloDispatcher), typeof(T), lifetime);
+        PabloDispatcher = ServiceDescriptor.Describe(typeof(IDispatcher), typeof(T), lifetime);
         return this;
     }
 
@@ -75,7 +76,7 @@ public class PabloDispatchComponent : IPabloDispatchComponent
     private readonly List<ServiceDescriptor> _queryPipelineProviders = new();
 
     public IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
-        where TQuery : IQuery<TResult>
+        where TQuery : IQuery
         where TQueryHandler : class, IQueryHandler<TQuery, TResult>
     {
         var pipeline = new QueryPipeline<TQuery, TResult>();
