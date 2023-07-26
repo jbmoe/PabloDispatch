@@ -71,7 +71,7 @@ public class ComponentTests
     }
 
     [Fact]
-    public void Component_Set_RequestHandler_With_Void()
+    public void Component_Set_CommandHandler()
     {
         var fixture = new ComponentTestFixture(component =>
         {
@@ -87,7 +87,7 @@ public class ComponentTests
     }
 
     [Fact]
-    public void Component_Set_RequestHandler_With_Return()
+    public void Component_Set_QueryHandler()
     {
         var fixture = new ComponentTestFixture(component =>
         {
@@ -103,7 +103,7 @@ public class ComponentTests
     }
 
     [Fact]
-    public void Component_Set_PipelineHandler_With_Void()
+    public void Component_Set_Command_PipelineHandler()
     {
         var fixture = new ComponentTestFixture(component =>
         {
@@ -127,7 +127,7 @@ public class ComponentTests
     }
 
     [Fact]
-    public void Component_Set_PipelineHandler_With_Return()
+    public void Component_Set_Query_PipelineHandler()
     {
         var fixture = new ComponentTestFixture(component =>
         {

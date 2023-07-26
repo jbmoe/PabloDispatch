@@ -6,8 +6,10 @@ namespace PabloDispatch.Tests.Mock.RequestHandlers;
 
 public class MockQueryHandler : IQueryHandler<MockQuery, MockModel>
 {
-    public Task<MockModel> HandleAsync(MockQuery request, CancellationToken cancellationToken)
+    public const string Code = nameof(MockQueryHandler);
+    public Task<MockModel> HandleAsync(MockQuery query, CancellationToken cancellationToken)
     {
+        query.CallBack?.Invoke(Code);
         return Task.FromResult(new MockModel());
     }
 }

@@ -22,7 +22,7 @@ internal class CommandPipeline<TCommand> : ICommandPipeline<TCommand>
     public ICommandPipeline<TCommand> AddPreProcessor<TCommandPipelineHandler>(ServiceLifetime lifetime)
         where TCommandPipelineHandler : ICommandPipelineHandler<TCommand>
     {
-        var serviceDescription = ServiceDescriptor.Describe(typeof(ICommandPipelineHandler<TCommand>), typeof(TCommandPipelineHandler), lifetime);
+        var serviceDescription = ServiceDescriptor.Describe(typeof(TCommandPipelineHandler), typeof(TCommandPipelineHandler), lifetime);
         _preProcessors.Add(serviceDescription);
         return this;
     }
@@ -30,7 +30,7 @@ internal class CommandPipeline<TCommand> : ICommandPipeline<TCommand>
     public ICommandPipeline<TCommand> AddPostProcessor<TCommandPipelineHandler>(ServiceLifetime lifetime)
         where TCommandPipelineHandler : ICommandPipelineHandler<TCommand>
     {
-        var serviceDescription = ServiceDescriptor.Describe(typeof(ICommandPipelineHandler<TCommand>), typeof(TCommandPipelineHandler), lifetime);
+        var serviceDescription = ServiceDescriptor.Describe(typeof(TCommandPipelineHandler), typeof(TCommandPipelineHandler), lifetime);
         _postProcessors.Add(serviceDescription);
         return this;
     }

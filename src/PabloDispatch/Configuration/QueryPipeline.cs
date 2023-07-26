@@ -19,18 +19,18 @@ internal class QueryPipeline<TRequest, TResult> : IQueryPipeline<TRequest, TResu
         return _postProcessors.AsReadOnly();
     }
 
-    public IQueryPipeline<TRequest, TResult> AddPreProcessor<TRequestPipelineHandler>(ServiceLifetime lifetime)
-        where TRequestPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
+    public IQueryPipeline<TRequest, TResult> AddPreProcessor<TQueryPipelineHandler>(ServiceLifetime lifetime)
+        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
     {
-        var serviceDescription = ServiceDescriptor.Describe(typeof(IQueryPipelineHandler<TRequest, TResult>), typeof(TRequestPipelineHandler), lifetime);
+        var serviceDescription = ServiceDescriptor.Describe(typeof(TQueryPipelineHandler), typeof(TQueryPipelineHandler), lifetime);
         _preProcessors.Add(serviceDescription);
         return this;
     }
 
-    public IQueryPipeline<TRequest, TResult> AddPostProcessor<TRequestPipelineHandler>(ServiceLifetime lifetime)
-        where TRequestPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
+    public IQueryPipeline<TRequest, TResult> AddPostProcessor<TQueryPipelineHandler>(ServiceLifetime lifetime)
+        where TQueryPipelineHandler : IQueryPipelineHandler<TRequest, TResult>
     {
-        var serviceDescription = ServiceDescriptor.Describe(typeof(IQueryPipelineHandler<TRequest, TResult>), typeof(TRequestPipelineHandler), lifetime);
+        var serviceDescription = ServiceDescriptor.Describe(typeof(TQueryPipelineHandler), typeof(TQueryPipelineHandler), lifetime);
         _postProcessors.Add(serviceDescription);
         return this;
     }

@@ -5,6 +5,7 @@ using PabloDispatch.Api.Exceptions;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Configuration;
 using PabloDispatch.Tests.Mock.Models;
+using PabloDispatch.Tests.Mock.RequestHandlers;
 using PabloDispatch.Tests.Mock.Requests;
 using Xunit;
 
@@ -27,33 +28,60 @@ public class PabloDispatcherTests
     }
 
     [Fact]
-    public async Task Dispatcher_RequestHandler_NotFound_With_Void()
+    public async Task Dispatcher_CommandHandler_NotFound_Throws()
     {
         var fixture = new PabloDispatcherTestFixture();
 
         var request = new MockCommand();
 
-        await Assert.ThrowsAsync<CommandHandlerNotFoundException>(() => fixture.PabloDispatcher.DispatchAsync(request));
+        await Assert.ThrowsAsync<CommandHandlerNotFoundException>(
+            () => fixture.PabloDispatcher.DispatchAsync(request));
     }
 
     [Fact]
-    public async Task Dispatcher_RequestHandler_NotFound_With_Return()
+    public async Task Dispatcher_QueryHandler_NotFound_Throws()
     {
         var fixture = new PabloDispatcherTestFixture();
 
         var request = new MockQuery();
 
-        await Assert.ThrowsAsync<CommandHandlerNotFoundException>(
+        await Assert.ThrowsAsync<QueryHandlerNotFoundException>(
             () => fixture.PabloDispatcher.DispatchAsync<MockQuery, MockModel>(request));
     }
 
     [Fact]
-    public void Dispatcher_RequestHandler_Found_With_Void()
+    public async Task Dispatcher_CommandHandler_Found_Is_Called()
     {
+        var fixture = new PabloDispatcherTestFixture(component =>
+        {
+            component.SetCommandHandler<MockCommand, MockCommandHandler>();
+        });
+
+        var isInvoked = false;
+
+        var command = new MockCommand(_ => isInvoked = true);
+
+        await fixture.PabloDispatcher.DispatchAsync(command);
+
+        Assert.True(isInvoked);
     }
 
     [Fact]
-    public void Dispatcher_RequestHandler_Found_With_Return()
+    public async Task Dispatcher_QueryHandler_Found_Is_Called()
     {
+        var fixture = new PabloDispatcherTestFixture(component =>
+        {
+            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>();
+        });
+
+        var isInvoked = false;
+
+        var query = new MockQuery(_ => isInvoked = true);
+
+        var result = await fixture.PabloDispatcher.DispatchAsync<MockQuery, MockModel>(query);
+
+        Assert.NotNull(result);
+        Assert.IsType<MockModel>(result);
+        Assert.True(isInvoked);
     }
 }

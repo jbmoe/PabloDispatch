@@ -5,8 +5,10 @@ namespace PabloDispatch.Tests.Mock.RequestHandlers;
 
 public class MockCommandHandler : ICommandHandler<MockCommand>
 {
-    public Task HandleAsync(MockCommand voidRequest, CancellationToken cancellationToken)
+    public const string Code = nameof(MockCommandHandler);
+    public Task HandleAsync(MockCommand command, CancellationToken cancellationToken = default)
     {
+        command.CallBack?.Invoke(Code);
         return Task.CompletedTask;
     }
 }
