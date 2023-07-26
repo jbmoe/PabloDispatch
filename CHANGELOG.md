@@ -5,6 +5,21 @@ All notable changes to the PabloDispatch library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0-alpha] - 2023-07-26
+
+### Added
+- Usage example to README
+
+### Changed
+- Seperated requests with and without return values to their own interfaces: `IQuery` and `ICommand`
+- Changed and seperated the below interfaces to match the above change
+	- `IRequestHandler<TRequest, TResponse>`
+	- `IRequestHandler<TRequest>`
+	- `IRequestPipelineHandler<TRequest, TResult>`
+	- `IRequestPipelineHandler<TRequest, TResult>`
+- Renamed `IPabloDispatcher` to `IDispatcher`
+- Changed README to accuratly describe the library according to the above changes
+
 ## [0.1.0-alpha] - 2023-07-18
 
 ### Added
@@ -16,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced the `IPabloDispatcher` interface for request dispatching.
 - Included the `IPabloDispatchComponent` interface for configuration and registration.
 - Added the `AddPabloDispatch` extension method for IServiceCollection to register the library components.
-- Begun on test implementations - still on TODO
 
 ### Usage Instructions
 
