@@ -1,12 +1,12 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using Microsoft.Extensions.DependencyInjection;
-using PabloCache.DistributedMemoryCache.Configuration;
 using PabloDispatch.Api.Exceptions;
 using PabloDispatch.Api.Options;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Configuration;
 using PabloDispatch.Tests.Mock.Models;
+using PabloDispatch.Tests.Mock.PabloCache.Services;
 using PabloDispatch.Tests.Mock.RequestHandlers;
 using PabloDispatch.Tests.Mock.RequestPipelineHandlers;
 using PabloDispatch.Tests.Mock.Requests;
@@ -96,7 +96,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
@@ -127,7 +127,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
@@ -162,7 +162,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
@@ -197,7 +197,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
@@ -232,7 +232,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
@@ -267,7 +267,7 @@ public class PabloDispatcherTests
             component
                 .ConfigurePabloCache(cacheComponent =>
                 {
-                    cacheComponent.UseDistributedMemoryCache(services);
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
                 })
                 .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
