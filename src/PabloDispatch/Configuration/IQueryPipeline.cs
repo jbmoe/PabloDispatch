@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PabloDispatch.Api.Options;
 using PabloDispatch.Api.Queries;
 
 namespace PabloDispatch.Configuration;
@@ -8,21 +9,9 @@ namespace PabloDispatch.Configuration;
 /// </summary>
 /// <typeparam name="TQuery">The query type to pre- or post-process.</typeparam>
 /// <typeparam name="TResult">The result type to pre- or post-process.</typeparam>
-public interface IQueryPipeline<out TQuery, TResult>
+public interface IQueryPipeline<TQuery, TResult>
     where TQuery : IQuery
 {
-    /// <summary>
-    /// Gets the added pre-processors for the command.
-    /// </summary>
-    /// <returns></returns>
-    internal IReadOnlyList<ServiceDescriptor> GetPreProcessors();
-
-    /// <summary>
-    /// Gets the added post-processors for the command.
-    /// </summary>
-    /// <returns></returns>
-    internal IReadOnlyList<ServiceDescriptor> GetPostProcessors();
-
     /// <summary>
     /// Adds the query pipeline handler of type <typeparamref name="TQueryPipelineHandler"/> as a pre-processors for the <typeparamref name="TQuery"/>.
     /// </summary>
@@ -40,4 +29,11 @@ public interface IQueryPipeline<out TQuery, TResult>
     /// <returns>Returns pipeline for chaining.</returns>
     IQueryPipeline<TQuery, TResult> AddPostProcessor<TRequestPipelineHandler>(ServiceLifetime lifetime = ServiceLifetime.Transient)
         where TRequestPipelineHandler : IQueryPipelineHandler<TQuery>;
+
+    /// <summary>
+    /// Sets the cache options for the query.
+    /// </summary>
+    /// <param name="cacheOptions">The cache options to set.</param>
+    /// <returns>Returns the pipeline for chaining.</returns>
+    IQueryPipeline<TQuery, TResult> SetCacheOptions(CacheOptions<TQuery> cacheOptions);
 }

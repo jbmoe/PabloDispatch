@@ -7,6 +7,7 @@
 /// <typeparam name="TResult">The return type of the query.</typeparam>
 public interface IQueryHandler<in TQuery, TResult>
     where TQuery : IQuery
+    where TResult : class
 {
     Task<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,5 @@
 ﻿namespace PabloDispatch.Tests.Mock.Models;
 
-public class MockModel
+public class MockModelB
 {
 }

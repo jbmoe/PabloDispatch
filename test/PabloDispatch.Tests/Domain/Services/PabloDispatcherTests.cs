@@ -2,10 +2,13 @@
 using AutoFixture.AutoNSubstitute;
 using Microsoft.Extensions.DependencyInjection;
 using PabloDispatch.Api.Exceptions;
+using PabloDispatch.Api.Options;
 using PabloDispatch.Api.Services;
 using PabloDispatch.Configuration;
 using PabloDispatch.Tests.Mock.Models;
+using PabloDispatch.Tests.Mock.PabloCache.Services;
 using PabloDispatch.Tests.Mock.RequestHandlers;
+using PabloDispatch.Tests.Mock.RequestPipelineHandlers;
 using PabloDispatch.Tests.Mock.Requests;
 using Xunit;
 
@@ -17,11 +20,11 @@ public class PabloDispatcherTests
     {
         public IDispatcher Dispatcher { get; set; }
 
-        public PabloDispatcherTestFixture(Action<IPabloDispatchComponent>? componentConfig = null)
+        public PabloDispatcherTestFixture(Action<IPabloDispatchComponent, IServiceCollection>? componentConfig = null)
         {
             Customize(new AutoNSubstituteCustomization());
             var services = new ServiceCollection();
-            services.AddPabloDispatch(componentConfig);
+            services.AddPabloDispatch(component => componentConfig?.Invoke(component, services));
             var serviceProvider = services.BuildServiceProvider();
             Dispatcher = serviceProvider.GetRequiredService<IDispatcher>();
         }
@@ -46,13 +49,13 @@ public class PabloDispatcherTests
         var request = new MockQuery();
 
         await Assert.ThrowsAsync<QueryHandlerNotFoundException>(
-            () => fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(request));
+            () => fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(request));
     }
 
     [Fact]
     public async Task Dispatcher_CommandHandler_Found_Is_Called()
     {
-        var fixture = new PabloDispatcherTestFixture(component =>
+        var fixture = new PabloDispatcherTestFixture((component, _) =>
         {
             component.SetCommandHandler<MockCommand, MockCommandHandler>();
         });
@@ -69,19 +72,231 @@ public class PabloDispatcherTests
     [Fact]
     public async Task Dispatcher_QueryHandler_Found_Is_Called()
     {
-        var fixture = new PabloDispatcherTestFixture(component =>
+        var fixture = new PabloDispatcherTestFixture((component, _) =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>();
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>();
         });
 
         var isInvoked = false;
 
         var query = new MockQuery(_ => isInvoked = true);
 
-        var result = await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        var result = await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.NotNull(result);
-        Assert.IsType<MockModel>(result);
+        Assert.IsType<MockModelA>(result);
         Assert.True(isInvoked);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig.SetCacheOptions(new CacheOptions<MockQuery>
+                    {
+                        CacheKeyFactory = query => $"{query}",
+                        EnableCache = true,
+                        TtlMinutes = 5,
+                    });
+                });
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(1, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_Post_Processors_Are_Cached()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.PostProcessors,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                });
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(4, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_Pre_Processors_Are_Cached()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.PreProcessors,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                });
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(4, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_No_Processors_Are_Cached()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.None,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                });
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(5, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_All_Processors_Are_Cached()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.All,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                });
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(3, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_Other_Result_Type_Is_Not()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.SetCacheService<InMemoryCacheService>();
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.All,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                })
+                .SetQueryHandler<MockQuery, MockModelB, MockBQueryHandler>();
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(3, invokedCount);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelB>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelB>(query);
+
+        Assert.Equal(5, invokedCount);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PabloCache.Abstractions.Configuration;
 using PabloDispatch.Api.Commands;
 using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
@@ -47,9 +48,13 @@ public interface IPabloDispatchComponent
     /// <returns>Returns component for chaining.</returns>
     IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
         where TQuery : IQuery
+        where TResult : class
         where TQueryHandler : class, IQueryHandler<TQuery, TResult>;
 
     #endregion
 
-    internal IReadOnlyList<ServiceDescriptor> GetServices();
+    #region PabloCache
+    public IPabloDispatchComponent ConfigurePabloCache(Action<IPabloCacheComponent> configure);
+
+    #endregion
 }

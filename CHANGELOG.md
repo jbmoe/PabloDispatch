@@ -5,6 +5,17 @@ All notable changes to the PabloDispatch library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-alpha] - 2023-12-26
+
+### Added
+
+- Caching for query dispatching.
+- Usage example to README, including detailed instructions on configuring and using caching for query dispatching.
+
+### Changed
+
+- Change type constraint for `TResult` in `IDispatcher` and `IQueryHandler` interfaces in order to implement caching of query results.
+- Changed type parameter TQuery of `IQueryPipeline` to be non-covariant
 ## [1.1.0-alpha] - 2023-07-26
 
 ### Added
@@ -40,4 +51,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Note on Alpha Version
 
-Please be aware that PabloDispatch is currently in the alpha stage, which means it's still undergoing early testing and development. As a result, changes may occur in subsequent releases as we refine and improve the library based on user feedback and requirements.
+Please be aware that PabloDispatch is currently in the alpha stage, which means it's still undergoing early testing and development. As a result, changes may occur in subsequent releases as the library is refined and improved.

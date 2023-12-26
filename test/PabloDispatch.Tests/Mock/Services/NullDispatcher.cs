@@ -8,6 +8,7 @@ public class NullDispatcher : IDispatcher
 {
     public Task<TResult> DispatchAsync<TRequest, TResult>(TRequest query, CancellationToken cancellationToken = default)
         where TRequest : IQuery
+        where TResult : class
     {
         throw new NotImplementedException();
     }
