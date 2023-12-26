@@ -48,6 +48,7 @@ public interface IPabloDispatchComponent
     /// <returns>Returns component for chaining.</returns>
     IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
         where TQuery : IQuery
+        where TResult : class
         where TQueryHandler : class, IQueryHandler<TQuery, TResult>;
 
     #endregion

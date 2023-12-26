@@ -82,6 +82,7 @@ internal class PabloDispatchComponent : IPabloDispatchComponent
 
     public IPabloDispatchComponent SetQueryHandler<TQuery, TResult, TQueryHandler>(Action<IQueryPipeline<TQuery, TResult>>? pipelineConfig = null)
         where TQuery : IQuery
+        where TResult : class
         where TQueryHandler : class, IQueryHandler<TQuery, TResult>
     {
         var pipeline = new QueryPipeline<TQuery, TResult>();
