@@ -17,7 +17,7 @@ public partial class Dispatcher
     {
         var queryHandler = _serviceProvider.GetService<IQueryHandler<TQuery, TResult>>() ?? throw QueryHandlerNotFoundException.FromTypes<TQuery, TResult>();
         var pipelineProvider = _serviceProvider.GetService<IQueryPipelineProvider<TQuery, TResult>>() ?? throw QueryPipelineProviderNotFoundException.FromTypes<TQuery, TResult>();
-        var queryOptionsProvider = _serviceProvider.GetService<IQueryOptionsProvider<TQuery>>() ?? throw QueryOptionsProviderNotFoundException.FromTypes<TQuery, TResult>();
+        var queryOptionsProvider = _serviceProvider.GetService<IQueryOptionsProvider<TQuery, TResult>>() ?? throw QueryOptionsProviderNotFoundException.FromTypes<TQuery, TResult>();
 
         var cacheOptions = queryOptionsProvider.CacheOptions;
         if (cacheOptions.EnableCache)

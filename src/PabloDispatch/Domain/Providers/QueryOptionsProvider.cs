@@ -3,7 +3,7 @@ using PabloDispatch.Api.Providers;
 
 namespace PabloDispatch.Domain.Providers;
 
-internal class QueryOptionsProvider<TQuery> : IQueryOptionsProvider<TQuery>
+internal class QueryOptionsProvider<TQuery, TResult> : IQueryOptionsProvider<TQuery, TResult>
 {
     public QueryOptionsProvider(CacheOptions<TQuery> cacheOptions)
     {

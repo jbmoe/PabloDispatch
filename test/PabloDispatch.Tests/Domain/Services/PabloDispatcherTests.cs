@@ -49,7 +49,7 @@ public class PabloDispatcherTests
         var request = new MockQuery();
 
         await Assert.ThrowsAsync<QueryHandlerNotFoundException>(
-            () => fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(request));
+            () => fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(request));
     }
 
     [Fact]
@@ -74,17 +74,17 @@ public class PabloDispatcherTests
     {
         var fixture = new PabloDispatcherTestFixture((component, _) =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>();
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>();
         });
 
         var isInvoked = false;
 
         var query = new MockQuery(_ => isInvoked = true);
 
-        var result = await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        var result = await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.NotNull(result);
-        Assert.IsType<MockModel>(result);
+        Assert.IsType<MockModelA>(result);
         Assert.True(isInvoked);
     }
 
@@ -98,7 +98,7 @@ public class PabloDispatcherTests
                 {
                     cacheComponent.UseDistributedMemoryCache(services);
                 })
-                .SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipelineConfig =>
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
                     pipelineConfig.SetCacheOptions(new CacheOptions<MockQuery>
                     {
@@ -113,8 +113,8 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => invokedCount++);
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(1, invokedCount);
     }
@@ -129,7 +129,7 @@ public class PabloDispatcherTests
                 {
                     cacheComponent.UseDistributedMemoryCache(services);
                 })
-                .SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipelineConfig =>
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
                     pipelineConfig
                         .SetCacheOptions(new CacheOptions<MockQuery>
@@ -148,8 +148,8 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => invokedCount++);
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(4, invokedCount);
     }
@@ -164,7 +164,7 @@ public class PabloDispatcherTests
                 {
                     cacheComponent.UseDistributedMemoryCache(services);
                 })
-                .SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipelineConfig =>
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
                     pipelineConfig
                         .SetCacheOptions(new CacheOptions<MockQuery>
@@ -183,8 +183,8 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => invokedCount++);
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(4, invokedCount);
     }
@@ -199,7 +199,7 @@ public class PabloDispatcherTests
                 {
                     cacheComponent.UseDistributedMemoryCache(services);
                 })
-                .SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipelineConfig =>
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
                     pipelineConfig
                         .SetCacheOptions(new CacheOptions<MockQuery>
@@ -218,8 +218,8 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => invokedCount++);
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(5, invokedCount);
     }
@@ -234,7 +234,7 @@ public class PabloDispatcherTests
                 {
                     cacheComponent.UseDistributedMemoryCache(services);
                 })
-                .SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipelineConfig =>
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
                 {
                     pipelineConfig
                         .SetCacheOptions(new CacheOptions<MockQuery>
@@ -253,9 +253,50 @@ public class PabloDispatcherTests
 
         var query = new MockQuery(_ => invokedCount++);
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(3, invokedCount);
+    }
+
+    [Fact]
+    public async Task Dispatcher_QueryHandler_Is_Cached_Other_Result_Type_Is_Not()
+    {
+        var fixture = new PabloDispatcherTestFixture((component, services) =>
+        {
+            component
+                .ConfigurePabloCache(cacheComponent =>
+                {
+                    cacheComponent.UseDistributedMemoryCache(services);
+                })
+                .SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipelineConfig =>
+                {
+                    pipelineConfig
+                        .SetCacheOptions(new CacheOptions<MockQuery>
+                        {
+                            CacheKeyFactory = query => $"{query}",
+                            EnableCache = true,
+                            TtlMinutes = 5,
+                            CachedPipelines = CachedPipelines.All,
+                        })
+                        .AddPreProcessor<MockAQueryPipelineHandler>()
+                        .AddPostProcessor<MockBQueryPipelineHandler>();
+                })
+                .SetQueryHandler<MockQuery, MockModelB, MockBQueryHandler>();
+        });
+
+        var invokedCount = 0;
+
+        var query = new MockQuery(_ => invokedCount++);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
+
+        Assert.Equal(3, invokedCount);
+
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelB>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelB>(query);
+
+        Assert.Equal(5, invokedCount);
     }
 }

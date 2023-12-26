@@ -52,7 +52,7 @@ public class PabloDispatcherPipelineTests
     {
         var fixture = new PabloDispatcherPipelineTestFixture(component =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipeline =>
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipeline =>
             {
                 pipeline.AddPostProcessor<MockAQueryPipelineHandler>();
             });
@@ -62,7 +62,7 @@ public class PabloDispatcherPipelineTests
 
         var query = new MockQuery(code => callStack.Enqueue(code));
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Contains(MockAQueryPipelineHandler.Code, callStack);
     }
@@ -96,7 +96,7 @@ public class PabloDispatcherPipelineTests
     {
         var fixture = new PabloDispatcherPipelineTestFixture(component =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipeline =>
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipeline =>
             {
                 pipeline
                     .AddPreProcessor<MockAQueryPipelineHandler>()
@@ -108,10 +108,10 @@ public class PabloDispatcherPipelineTests
 
         var query = new MockQuery(code => callStack.Enqueue(code));
 
-        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModel>(query);
+        await fixture.Dispatcher.DispatchAsync<MockQuery, MockModelA>(query);
 
         Assert.Equal(MockAQueryPipelineHandler.Code, callStack.Dequeue());
-        Assert.Equal(MockQueryHandler.Code, callStack.Dequeue());
+        Assert.Equal(MockAQueryHandler.Code, callStack.Dequeue());
         Assert.Equal(MockBQueryPipelineHandler.Code, callStack.Dequeue());
     }
 }

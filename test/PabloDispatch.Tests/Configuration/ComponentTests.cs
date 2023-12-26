@@ -91,15 +91,15 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>();
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>();
         });
 
         var serviceProvider = fixture.ServiceProvider;
 
-        var requestHandler = serviceProvider.GetService<IQueryHandler<MockQuery, MockModel>>();
+        var requestHandler = serviceProvider.GetService<IQueryHandler<MockQuery, MockModelA>>();
 
         Assert.NotNull(requestHandler);
-        Assert.IsType<MockQueryHandler>(requestHandler);
+        Assert.IsType<MockAQueryHandler>(requestHandler);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ComponentTests
     {
         var fixture = new ComponentTestFixture(component =>
         {
-            component.SetQueryHandler<MockQuery, MockModel, MockQueryHandler>(pipeline =>
+            component.SetQueryHandler<MockQuery, MockModelA, MockAQueryHandler>(pipeline =>
             {
                 pipeline
                     .AddPreProcessor<MockAQueryPipelineHandler>()

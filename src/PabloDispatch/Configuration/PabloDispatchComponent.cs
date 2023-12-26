@@ -92,13 +92,13 @@ internal class PabloDispatchComponent : IPabloDispatchComponent
             pipeline.PreProcessors.Select(x => x.ImplementationType!).ToList(),
             pipeline.PostProcessors.Select(x => x.ImplementationType!).ToList());
 
-        var queryOptionsProvider = new QueryOptionsProvider<TQuery>(pipeline.CacheOptions);
+        var queryOptionsProvider = new QueryOptionsProvider<TQuery, TResult>(pipeline.CacheOptions);
 
         _queryHandlers.Add(ServiceDescriptor.Transient<IQueryHandler<TQuery, TResult>, TQueryHandler>());
         _queryPipelineHandlers.AddRange(pipeline.PreProcessors);
         _queryPipelineHandlers.AddRange(pipeline.PostProcessors);
         _queryPipelineProviders.Add(ServiceDescriptor.Transient<IQueryPipelineProvider<TQuery, TResult>>(_ => pipelineProvider));
-        _queryOptionsProvider.Add(ServiceDescriptor.Transient<IQueryOptionsProvider<TQuery>>(_ => queryOptionsProvider));
+        _queryOptionsProvider.Add(ServiceDescriptor.Transient<IQueryOptionsProvider<TQuery, TResult>>(_ => queryOptionsProvider));
 
         return this;
     }
