@@ -9,6 +9,7 @@ PabloDispatch is a C# library designed to simplify and implement the Command Que
 - [How to Use PabloDispatch](#how-to-use-pablodispatch)
     - [Registration](#registration)
     - [Usage example](#usage-example)
+    - [Caching query dispatching](#caching-query-dispatching)
 - [Note on Alpha Version](#note-on-alpha-version)
 
 ## How PabloDispatch Works
@@ -117,6 +118,77 @@ public class SomeClass
 
 Remember to set the query and the query handler as specified [here](#registration)
 
+### Caching query dispatching
+
+PabloDispatch provides a robust caching mechanism to optimize query dispatching performance using PabloCache. This section guides you through configuring during startup and using caching with PabloDispatch.
+
+For more documentation on PabloCache [click here](https://github.com/jbmoe/PabloCache.Abstractions).
+
+#### Configuring Caching during Startup
+
+- **Initialize PabloDispatch Component:**   
+  In your application's startup configuration, use the `AddPabloDispatch` method to initialize the `IPabloDispatchComponent`, like described in the [Registration](#registration) section.
+
+- **Configure Caching with PabloCache:**
+  Inside the AddPabloDispatch method, use the ConfigurePabloCache method to set up caching with PabloCache. This method takes a configurator action:
+  ````csharp
+  // In your startup or composition root class:
+  public void ConfigureServices(IServiceCollection services)
+  {
+      // Register the PabloDispatch components using the extension method.
+      services.AddPabloDispatch(component =>
+      {
+          component.ConfigurePabloCache(cacheComponent =>
+          {
+              // Configure caching options using cacheComponent.Use... methods
+              cacheComponent.UseDistributedMemoryCache(services);
+          });
+      });
+  }
+  ````
+  In this example, UseDistributedMemoryCache is used, but you can choose any PabloCache implementation that suits your application.
+
+- **Set Up Query and Dispatcher:**
+  Set up your query, query handler, and dispatcher as described in the [Registration](#registration) section. 
+
+- **Set Caching Options for Query:**  
+  Apply caching options for the specific query using the SetCacheOptions method in the query pipeline configuration:
+  ```csharp
+  // In your startup or composition root class:
+  public void ConfigureServices(IServiceCollection services)
+  {
+      services.AddPabloDispatch(component =>
+      {
+          // Registering a command handler with pre- and post-processing:
+          component
+              .ConfigurePabloCache(cacheComponent =>
+              {
+                  // Configure caching options using cacheComponent.Use... methods
+                  cacheComponent.UseDistributedMemoryCache(services);
+              })
+              .SetQueryHandler<YourQueryType, YourReturnType, YourQueryHandlerType>(pipeline =>
+              {
+                  pipeline
+                      .SetCacheOptions(new CacheOptions<YourQueryType>
+                      {
+                          CacheKeyFactory = query => $"YourQueryType_{query.Property}",
+                          EnableCache = true,
+                          TtlMinutes = 5,
+                          CachedPipelines = CachedPipelines.All,
+                      })
+                      .AddPreProcessor<YourQueryPipelineHandlerType>()
+                      .AddPostProcessor<YourQueryPipelineHandlerType>();
+              });
+      });
+  }
+  ```
+- **CachedPipelines:**
+  The CachedPipelines logic allows you to specify which pipelines (pre-processors and post-processors) should be cached. In the above example, CachedPipelines.All indicates that both pre and post-processors should be included in the cached result. Adjust the CachedPipelines value according to your application's needs.
+
+#### Using Caching
+
+Once configured during startup, caching is automatically applied when dispatching queries. Simply use the `IDispatcher` to dispatch your queries.
+
 ## Note on Alpha Version
 
-Please be aware that PabloDispatch is currently in the alpha stage, which means it's still undergoing early testing and development. As a result, changes may occur in subsequent releases as I refine and improve the library.
+Please be aware that PabloDispatch is currently in the alpha stage, which means it's still undergoing early testing and development. As a result, changes may occur in subsequent releases as the library is refined and improved.
