@@ -17,7 +17,8 @@ public interface IDispatcher
     /// <param name="cancellationToken">A cancellation token for cancelling async operations.</param>
     /// <returns>Awaitable task for query handling completion with the result.</returns>
     Task<TResult> DispatchAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
-        where TQuery : IQuery;
+        where TQuery : IQuery
+        where TResult : class;
 
     /// <summary>
     /// Dispatches a command of type <typeparamref name="TCommand"/> asynchronously.

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PabloCache.Abstractions.Configuration;
 using PabloDispatch.Api.Commands;
 using PabloDispatch.Api.Queries;
 using PabloDispatch.Api.Services;
@@ -51,5 +52,8 @@ public interface IPabloDispatchComponent
 
     #endregion
 
-    internal IReadOnlyList<ServiceDescriptor> GetServices();
+    #region PabloCache
+    public IPabloDispatchComponent ConfigurePabloCache(Action<IPabloCacheComponent> configure);
+
+    #endregion
 }

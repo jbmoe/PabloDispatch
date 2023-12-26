@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using PabloCache.Abstractions.Configuration;
 
 namespace PabloDispatch.Configuration;
 
@@ -18,6 +19,11 @@ public static class ServiceCollectionExtensions
         componentConfig?.Invoke(component);
 
         services.Add(component.GetServices());
+
+        services.AddPabloCaching(cache =>
+        {
+            component.PabloCacheConfig.Invoke(cache);
+        });
 
         return services;
     }

@@ -7,7 +7,7 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<Title>PabloDispatch</Title>
-		<Authors>jbmo</Authors>
+		<Authors>jbmoe</Authors>
 		<RepositoryUrl>https://github.com/jbmoe/PabloDispatch</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -28,7 +28,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+		<PackageReference Include="PabloCache.DistributedMemoryCache" Version="0.1.0-alpha" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.556">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 
 </Project>
